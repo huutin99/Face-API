@@ -1,5 +1,134 @@
-extends layout
+doctype html
+html
+    head
+        script(src='face-api.js')
+        script(src='js/commons.js')
+        script(src='js/faceDetectionControls.js')
+        link(rel='stylesheet' href='styles.css')
+        link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.css')
+        script(type='text/javascript' src='https://code.jquery.com/jquery-2.1.1.min.js')
+        script(src='https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js')
+        script(type='text/javascript' src='https://unpkg.com/webcam-easy/dist/webcam-easy.min.js')
+    body
+        .center-content.page-container
+            #loader.progress
+                .indeterminate
+            .margin(style='position: relative')
+                video#inputVideo(onloadedmetadata='onPlay(this)' autoplay='' muted='' playsinline='')
+                canvas#overlay
+                img#download-photo
+                canvas#picturesnap
+            .row.side-by-side(style='display:none')
+                // face_detector_selection_control
+                #face_detector_selection_control.row.input-field(style='margin-right: 20px;')
+                    select#selectFaceDetector
+                        option(value='tiny_face_detector') Tiny Face Detector
+                    label Select Face Detector
+                // face_detector_selection_control
+                // fps_meter
+                #fps_meter.row.side-by-side
+                    div
+                        label(for='time') Time:
+                        input#time.bold(disabled='' value='-' type='text')
+                        label(for='fps') Estimated Fps:
+                        input#fps.bold(disabled='' value='-' type='text')
+                // fps_meter
+                // ssd_mobilenetv1_controls
+                span#ssd_mobilenetv1_controls
+                    .row.side-by-side
+                        .row
+                            label(for='minConfidence') Min Confidence:
+                            input#minConfidence.bold(disabled='' value='0.5' type='text')
+                        button.waves-effect.waves-light.btn(onclick='onDecreaseMinConfidence()')
+                            i.material-icons.left -
+                        button.waves-effect.waves-light.btn(onclick='onIncreaseMinConfidence()')
+                            i.material-icons.left +
+                // ssd_mobilenetv1_controls
+                // tiny_face_detector_controls
+                span#tiny_face_detector_controls
+                    .row.side-by-side
+                        .row.input-field(style='margin-right: 20px;')
+                            select#inputSize
+                                option(value='' disabled='' selected='') Input Size:
+                                option(value='128') 128 x 128
+                                option(value='160') 160 x 160
+                                option(value='224') 224 x 224
+                                option(value='320') 320 x 320
+                                option(value='416') 416 x 416
+                                option(value='512') 512 x 512
+                                option(value='608') 608 x 608
+                            label Input Size
+                        .row
+                            label(for='scoreThreshold') Score Threshold:
+                            input#scoreThreshold.bold(disabled='' value='0.5' type='text')
+                        button.waves-effect.waves-light.btn(onclick='onDecreaseScoreThreshold()')
+                            i.material-icons.left -
+                        button.waves-effect.waves-light.btn(onclick='onIncreaseScoreThreshold()')
+                            i.material-icons.left +
+                // tiny_face_detector_controls
+                script.
+                    let forwardTimes = []
+                    function updateTimeStats(timeInMs) {
+                    forwardTimes = [timeInMs].concat(forwardTimes).slice(0, 30)
+                    const avgTimeInMs = forwardTimes.reduce((total, t) => total + t) / forwardTimes.length
+                    $('#time').val(`${Math.round(avgTimeInMs)} ms`)
+                    $('#fps').val(`${faceapi.utils.round(1000 / avgTimeInMs)}`)
+                    }
+                    async function onPlay() {
+                    const videoEl = $('#inputVideo').get(0)
+                    if(videoEl.paused || videoEl.ended || !isFaceDetectionModelLoaded())
+                    return setTimeout(() => onPlay())
+                    const options = getFaceDetectorOptions()
+                    const ts = Date.now()
+                    const result = await faceapi.detectSingleFace(videoEl, options)
+                    updateTimeStats(Date.now() - ts)
+                    if (result) {
+                    const canvas = $('#overlay').get(0)
+                    const dims = faceapi.matchDimensions(canvas, videoEl, true)
+                    faceapi.draw.drawDetections(canvas, faceapi.resizeResults(result, dims))
+                    console.log('result:', result)
+                    const webcam = new Webcam(videoEl, 'user', canvas);
+                    let picture = webcam.snap();
+                    document.querySelector('#picturesnap').href = picture;
+                    //- picture.addEventListener("load", function () {
+                    //- var imgCanvas = document.createElement("canvas"),
+                    //- imgContext = imgCanvas.getContext("2d");
 
-block content
-  h1= title
-  p Welcome to #{title}
+                    //- // Make sure canvas is as big as the picture
+                    //- imgCanvas.width = elephant.width;
+                    //- imgCanvas.height = elephant.height;
+
+                    //- // Draw image into canvas element
+                    //- imgContext.drawImage(elephant, 0, 0, elephant.width, elephant.height);
+
+                    //- // Get canvas contents as a data URL
+                    //- var imgAsDataURL = imgCanvas.toDataURL("image/png");
+
+                    //- // Save image into localStorage
+                    //- try {
+                    //-     localStorage.setItem("elephant", imgAsDataURL);
+                    //- }
+                    //- catch (e) {
+                    //-     console.log("Storage failed: " + e);}
+                    //-   console.log('picture:', picture);
+                    //console.log('object:')
+                    } else 
+                    setTimeout(() => onPlay())
+                    }
+                    async function run() {
+                    // load face detection model
+                    await changeFaceDetector(TINY_FACE_DETECTOR)
+                    changeInputSize(128)
+                    // try to access users webcam and stream the images
+                    // to the video element
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: {} })
+                    const videoEl = $('#inputVideo').get(0)
+                    videoEl.srcObject = stream
+                    }
+                    function updateResults() {}
+                    $(document).ready(function() {
+                    initFaceDetectionControls()
+                    onIncreaseScoreThreshold()
+                    onIncreaseScoreThreshold()
+                    run()
+                    })
