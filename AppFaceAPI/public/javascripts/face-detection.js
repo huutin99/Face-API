@@ -53,12 +53,16 @@ async function detectFace(canvas, displaySize) {
     }
 }
 
-function capturePhoto() {
+async function capturePhoto() {
     video.pause()
     toDrawCanvas.getContext('2d').drawImage(video, 0, 0, video.width, video.height)
     var data = toDrawCanvas.toDataURL('img/jpg')
     toDrawCanvas.style.display = 'none'
     photo.setAttribute('src', data)
+    // photo.style.display = none
+    // var detection = await faceapi.detectAllFaces(photo, new faceapi.TinyFaceDetectorOptions({ inputsize: 128 }))
+    // var faceExtraction = await faceapi.extractFaces(photo, detection)
+    // displayExtractedFace(faceExtraction)
     if (numOfPhotos == 0)
         $('#IDModal').modal('show')
     else {
@@ -73,6 +77,11 @@ function capturePhoto() {
         alert('Okay, chụp xong rồi, thank u <3')
         video.play()
     }
+}
+
+function displayExtractedFace(face){
+    toDrawCanvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
+    faceapi.matchDimensions()
 }
 
 sID.addEventListener('keyup', function (event) {

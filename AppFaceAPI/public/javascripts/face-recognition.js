@@ -27,6 +27,8 @@ video.addEventListener('play', () => {
     interval = setInterval(detectFace, 100, canvas, displaySize)
 })
 
+var frameCounter
+
 async function detectFace(canvas, displaySize) {
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
     const face = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputsize: 128 }))
@@ -53,34 +55,51 @@ function capturePhoto() {
     var data = toDrawCanvas.toDataURL('img/jpg')
     toDrawCanvas.style.display = 'none'
     photo.setAttribute('src', data)
-    faceRecognition()
-}
-
-function faceRecognition() {
-    const labeledFaceDescriptors = detectAllLabeledFaces();
-    const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.8);
-    const bestMatch = faceMatcher.findBestMatch(result.descriptor);
-    const box = resizedDetections.detection.box;
-    const drawBox = new faceapi.draw.DrawBox(box, { label: bestMatch.label });
-    drawBox.draw(canvas);
-}
-
-async function detectAllLabeledFaces() {
-    const labels = ["Tin"];
-    return Promise.all(
-        labels.map(async label => {
-            const descriptions = [];
-            for (let i = 1; i <= 2; i++) {
-                const img = await faceapi.fetchImage(
-                    `http://localhost:8000/images/${label}/${i}.jpg`
-                );
-                const detection = await faceapi
-                    .detectSingleFace(img)
-                    .withFaceLandmarks()
-                    .withFaceDescriptor();
-                descriptions.push(detection.descriptor);
+    console.log(String(photo))
+    var content = {
+        "img": data
+    }
+    sendPhoto(content)
+    function sendPhoto(content) {
+        $.ajax({
+            method: 'POST',
+            url: 'recognition',
+            data: JSON.stringify(content),
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (res) {
+                console.log(res)
             }
-            return new faceapi.LabeledFaceDescriptors(label, descriptions);
         })
-    );
+    }
+    // faceRecognition()
 }
+
+// function faceRecognition() {
+//     const labeledFaceDescriptors = detectAllLabeledFaces();
+//     const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.8);
+//     const bestMatch = faceMatcher.findBestMatch(result.descriptor);
+//     const box = resizedDetections.detection.box;
+//     const drawBox = new faceapi.draw.DrawBox(box, { label: bestMatch.label });
+//     drawBox.draw(canvas);
+// }
+
+// async function detectAllLabeledFaces() {
+//     const labels = ["Tin"];
+//     return Promise.all(
+//         labels.map(async label => {
+//             const descriptions = [];
+//             for (let i = 1; i <= 2; i++) {
+//                 const img = await faceapi.fetchImage(
+//                     `http://localhost:8000/images/${label}/${i}.jpg`
+//                 );
+//                 const detection = await faceapi
+//                     .detectSingleFace(img)
+//                     .withFaceLandmarks()
+//                     .withFaceDescriptor();
+//                 descriptions.push(detection.descriptor);
+//             }
+//             return new faceapi.LabeledFaceDescriptors(label, descriptions);
+//         })
+//     );
+// }
