@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="face-api.min.js"></script>
+    <!-- <script defer src="script.js"></script> -->
+    <script type="text/javascript" src="https://unpkg.com/webcam-easy/dist/webcam-easy.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            position: absolute;
+        }
+    </style>
+</head>
+
+<body>
+    <video id="video" width="720" height="560" autoplay muted style="display: block;"></video>
+    <canvas id="captured-img" width="720px" height="560px" style="display: block; left: 0px; top: 700px;"></canvas>
+    <a id="capped" style="display: block;"></a>
+    <img alt="" id="toImg" style="display: block; left: 0px; top: 1200px">
+    <script>
+        const video = document.getElementById('video')
+        const capturedImg = document.getElementById('captured-img')
+        // const webcam = new Webcam(video, 'user')
+
+        Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+            faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+            faceapi.nets.faceExpressionNet.loadFromUri('/models'),
+            faceapi.nets.faceRecognitionNet.loadFromUri('/models')
+        ]).then(startVideo)
+
+        var webcam, ctx, detect;
+
+        function startVideo() {
+            navigator.getUserMedia(
+                { video: {} },
+                webcamStream => video.srcObject = webcamStream,
+                err => console.error(err)
+            )
+        }
+
+        function stopVideo() {
+            webcamStream.stop();
+        }
+
+        video.addEventListener('play', () => {
+            const canvas = faceapi.createCanvasFromMedia(video)
+            document.body.append(canvas)
+            const displaySize = { width: video.width, height: video.height }
+            faceapi.matchDimensions(canvas, displaySize)
+            detect = setInterval(async () => {
+                const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.8 })).withFaceLandmarks().withFaceExpressions()
+                const resizedDetections = faceapi.resizeResults(detections, displaySize)
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
+                faceapi.draw.drawDetections(canvas, resizedDetections)
+                if (detections) {
+                    webcam = new Webcam(video, 'user', capturedImg)
+                    webcam.flip()
+                    let pic = webcam.snap()
+                    document.querySelector('#capped').href = pic
+                    stopInterval()
+                }
+            }, 100)
+        })
+
+        function stopInterval() {
+            clearInterval(detect)
+            webcam.stop()
+            recognizeImg()
+        }
+
+        async function recognizeImg() {
+            const displaySize = { width: capturedImg.width, height: capturedImg.height }
+            const labeledFaceDescriptors = await loadLabeledImages()
+            const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.8)
+            const detections = await faceapi.detectAllFaces(capturedImg, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors()
+            const resizedDetections = await faceapi.resizeResults(detections, displaySize)
+            const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor))
+            results.forEach((result, i) => {
+                const box = resizedDetections[i].detection.box
+                const drawBox = new faceapi.draw.DrawBox(box, { label: result.toString() })
+                drawBox.draw(capturedImg)
+            })
+        }
+
+        function loadLabeledImages() {
+            const labels = ['Hau', 'Linh', 'Tin']
+            return Promise.all(
+                labels.map(async label => {
+                    const descriptions = []
+                    for (let i = 1; i <= 2; i++) {
+                        const img = await faceapi.fetchImage(`http://127.0.0.1:5500/img/${label}/${i}.jpg`)
+                        const detections = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor()
+                        if (detections)
+                            descriptions.push(detections.descriptor)
+                    }
+                    return new faceapi.LabeledFaceDescriptors(label, descriptions)
+                })
+            )
+        }
+    </script>
+</body>
+
+</html>
