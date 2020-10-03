@@ -1,23 +1,24 @@
 doctype html
 html
     head
+        script(src='https://code.jquery.com/jquery-3.5.1.js' integrity='sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=' crossorigin='anonymous')
         script(src='face-api.js')
         script(src='js/commons.js')
         script(src='js/faceDetectionControls.js')
         link(rel='stylesheet' href='styles.css')
         link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.css')
-        script(type='text/javascript' src='https://code.jquery.com/jquery-2.1.1.min.js')
         script(src='https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js')
         script(type='text/javascript' src='https://unpkg.com/webcam-easy/dist/webcam-easy.min.js')
+        script(type='text/javascript' src='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js')
     body
         .center-content.page-container
             #loader.progress
                 .indeterminate
             .margin(style='position: relative')
+                h2#message
                 video#inputVideo(onloadedmetadata='onPlay(this)' autoplay='' muted='' playsinline='')
-                canvas#overlay
-                img#download-photo
-                canvas#picturesnap
+                canvas#overlay(style='position: relative')
+                img#picturesnap
             .row.side-by-side(style='display:none')
                 // face_detector_selection_control
                 #face_detector_selection_control.row.input-field(style='margin-right: 20px;')
@@ -69,66 +70,74 @@ html
                 script.
                     let forwardTimes = []
                     function updateTimeStats(timeInMs) {
-                    forwardTimes = [timeInMs].concat(forwardTimes).slice(0, 30)
-                    const avgTimeInMs = forwardTimes.reduce((total, t) => total + t) / forwardTimes.length
-                    $('#time').val(`${Math.round(avgTimeInMs)} ms`)
-                    $('#fps').val(`${faceapi.utils.round(1000 / avgTimeInMs)}`)
+                        forwardTimes = [timeInMs].concat(forwardTimes).slice(0, 30)
+                        const avgTimeInMs = forwardTimes.reduce((total, t) => total + t) / forwardTimes.length
+                        $('#time').val(`${Math.round(avgTimeInMs)} ms`)
+                        $('#fps').val(`${faceapi.utils.round(1000 / avgTimeInMs)}`)
                     }
                     async function onPlay() {
-                    const videoEl = $('#inputVideo').get(0)
-                    if(videoEl.paused || videoEl.ended || !isFaceDetectionModelLoaded())
-                    return setTimeout(() => onPlay())
-                    const options = getFaceDetectorOptions()
-                    const ts = Date.now()
-                    const result = await faceapi.detectSingleFace(videoEl, options)
-                    updateTimeStats(Date.now() - ts)
-                    if (result) {
-                    const canvas = $('#overlay').get(0)
-                    const dims = faceapi.matchDimensions(canvas, videoEl, true)
-                    faceapi.draw.drawDetections(canvas, faceapi.resizeResults(result, dims))
-                    console.log('result:', result)
-                    const webcam = new Webcam(videoEl, 'user', canvas);
-                    let picture = webcam.snap();
-                    document.querySelector('#picturesnap').href = picture;
-                    //- picture.addEventListener("load", function () {
-                    //- var imgCanvas = document.createElement("canvas"),
-                    //- imgContext = imgCanvas.getContext("2d");
-
-                    //- // Make sure canvas is as big as the picture
-                    //- imgCanvas.width = elephant.width;
-                    //- imgCanvas.height = elephant.height;
-
-                    //- // Draw image into canvas element
-                    //- imgContext.drawImage(elephant, 0, 0, elephant.width, elephant.height);
-
-                    //- // Get canvas contents as a data URL
-                    //- var imgAsDataURL = imgCanvas.toDataURL("image/png");
-
-                    //- // Save image into localStorage
-                    //- try {
-                    //-     localStorage.setItem("elephant", imgAsDataURL);
-                    //- }
-                    //- catch (e) {
-                    //-     console.log("Storage failed: " + e);}
-                    //-   console.log('picture:', picture);
-                    //console.log('object:')
-                    } else 
-                    setTimeout(() => onPlay())
+                        const videoEl = $('#inputVideo').get(0)
+                        if(videoEl.paused || videoEl.ended || !isFaceDetectionModelLoaded())
+                        return setTimeout(() => onPlay())
+                        const options = getFaceDetectorOptions()
+                        const ts = Date.now()
+                        const result = await faceapi.detectSingleFace(videoEl, options)
+                        updateTimeStats(Date.now() - ts)
+                        if (result) {
+                            const canvas = $('#overlay').get(0)
+                            const dims = faceapi.matchDimensions(canvas, videoEl, true)
+                            faceapi.draw.drawDetections(canvas, faceapi.resizeResults(result, dims))
+                            console.log('result:', result)
+                            const webcam = new Webcam(videoEl, 'user', canvas);
+                            let picture = await webcam.snap();
+                            const stop = await webcam.stop();
+                            const file = await urltoFile(picture, '1.jpg','image/png').then(function() {})
+                            var mssv = "";
+                            do {
+                                mssv = prompt("Please enter your mssv:", "201xxxx");
+                            } while (mssv == null || mssv == "" || mssv == "201xxxx" || !/^\d{7}$/.test(mssv));
+                            $.ajax({
+                                method: "POST",
+                                url: "/hahaha",
+                                data: {
+                                    mssv:mssv, file:file
+                                },
+                                success: function(result) {
+                                    if (result.data) {
+                                        $("#message").html(result.data.message)
+                                        $("#message").css("color","green")
+                                    } else if (result.error) {
+                                        $("#message").html(result.error.message)
+                                        $("#message").css("color","red")
+                                    } else {
+                                        $("#message").html("Something wrong")
+                                        $("#message").css("color","red")
+                                    }
+                                }
+                            });
+                        } else
+                            setTimeout(() => onPlay())
+                    }
+                    function urltoFile(url, filename, mimeType){
+                        return (fetch(url)
+                            .then(function(res){return res.arrayBuffer();})
+                            .then(function(buf){return new File([buf], filename,{type:mimeType});})
+                        );
                     }
                     async function run() {
-                    // load face detection model
-                    await changeFaceDetector(TINY_FACE_DETECTOR)
-                    changeInputSize(128)
-                    // try to access users webcam and stream the images
-                    // to the video element
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: {} })
-                    const videoEl = $('#inputVideo').get(0)
-                    videoEl.srcObject = stream
+                        // load face detection model
+                        await changeFaceDetector(TINY_FACE_DETECTOR)
+                        changeInputSize(128)
+                        // try to access users webcam and stream the images
+                        // to the video element
+                        const stream = await navigator.mediaDevices.getUserMedia({ video: {} })
+                        const videoEl = $('#inputVideo').get(0)
+                        videoEl.srcObject = stream
                     }
                     function updateResults() {}
                     $(document).ready(function() {
-                    initFaceDetectionControls()
-                    onIncreaseScoreThreshold()
-                    onIncreaseScoreThreshold()
-                    run()
+                        initFaceDetectionControls()
+                        onIncreaseScoreThreshold()
+                        onIncreaseScoreThreshold()
+                        run()
                     })
