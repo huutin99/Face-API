@@ -16,7 +16,7 @@ function startVideo() {
     )
 }
 
-var interval
+var interval, frameCounter
 
 video.addEventListener('play', () => {
     var canvas = faceapi.createCanvasFromMedia(video)
@@ -24,7 +24,7 @@ video.addEventListener('play', () => {
     const displaySize = { width: video.width, height: video.height }
     faceapi.matchDimensions(canvas, displaySize)
     faceapi.matchDimensions(toDrawCanvas, video)
-    interval = setInterval(detectFace, 100, canvas, displaySize)
+    interval = setInterval(detectFace, 70, canvas, displaySize)
 })
 
 var frameCounter

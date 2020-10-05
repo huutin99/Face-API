@@ -45,7 +45,7 @@ async function detectFace(canvas, displaySize) {
         frameCounter--
     }
     else frameCounter = 0
-    if (frameCounter > 20) {
+    if (frameCounter > 5) {
         capturePhoto()
         clearInterval(interval)
         frameCounter = 0
@@ -59,17 +59,20 @@ async function capturePhoto() {
     var data = toDrawCanvas.toDataURL('img/jpg')
     toDrawCanvas.style.display = 'none'
     photo.setAttribute('src', data)
-    // photo.style.display = none
-    // var detection = await faceapi.detectAllFaces(photo, new faceapi.TinyFaceDetectorOptions({ inputsize: 128 }))
-    // var faceExtraction = await faceapi.extractFaces(photo, detection)
-    // displayExtractedFace(faceExtraction)
+    const detections = await faceapi.detectAllFaces(photo, new faceapi.TinyFaceDetectorOptions({ inputsize: 128 }))
+    const faceImages = await faceapi.extractFaces(photo, detections)
+    var canvas = document.createElement('canvas')
+    faceapi.matchDimensions(canvas, toDrawCanvas)
+    $('#facesContainer').empty()
+    faceImages.forEach(canvas => document.getElementById('facesContainer').append(canvas))
+    var newData = document.querySelector('#facesContainer canvas').toDataURL('img/jpg')
     if (numOfPhotos == 0)
         $('#IDModal').modal('show')
     else {
         var content = {
             "sid": sID.value,
-            "number": 2,
-            "img": data
+            "number": 1,
+            "img": newData
         }
         sendPhoto(content)
         numOfPhotos = 0
@@ -91,16 +94,20 @@ sID.addEventListener('keyup', function (event) {
 })
 
 btnOK.addEventListener('click', async function () {
-    var content = {
-        "sid": sID.value,
-        "number": 1,
-        "img": photo.getAttribute('src')
+    if (!isValid(sID.value)){
+        alert("MSSV không hợp lệ!")
+    } else {
+        var content = {
+            "sid": sID.value,
+            "number": 1,
+            "img": document.querySelector('#facesContainer canvas').toDataURL('img/jpg')
+        }
+        sendPhoto(content)
+        await $('#IDModal').modal('hide')
+        numOfPhotos = 1
+        alert('Cho chụp tấm nữa nha')
+        video.play()
     }
-    sendPhoto(content)
-    await $('#IDModal').modal('hide')
-    numOfPhotos = 1
-    alert('Cho chụp tấm nữa nha')
-    video.play()
 })
 
 btnCancel.addEventListener('click', function () {
@@ -118,4 +125,9 @@ function sendPhoto(content) {
             console.log(res)
         }
     })
+}
+function isValid(mssv){
+    if (mssv.length != 7) return false;
+    else if (!(parseInt(mssv) > 1500000 && parseInt(mssv) < 2100000)) return false
+    else return true;
 }
