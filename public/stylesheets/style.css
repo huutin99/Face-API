@@ -30,3 +30,7 @@ canvas {
   width: 640px;
   height: 480px;
 }
+
+#IDModal {
+  top: 150px;
+}

@@ -24,17 +24,13 @@ module.exports = function (app) {
     })
 
     app.post('/recognition', async function (req, res) {
-        let base64String = req.body.img
-        // var img
-        // var img = $(`<img src="${base64String}">`)
-        // await faceapi.nets.tinyFaceDetector.loadFromDisk('./public/models/tiny_face_detector_model-weights_manifest.json')
-        // await faceapi.nets.faceRecognitionNet.loadFromDisk('./public/models/face_recognition_model-weights_manifest.json')
-        // recognizeImg(img)
-        // await recognizeImg(img)
-        var dirList = []; //this is going to contain paths
+        var dirList = []
         fs.readdirSync('public/images/').forEach(folder => {
+            var length = fs.readdirSync(`public/images/${folder}/`).length
+            folder += ';' + length
             dirList.push(folder)
         })
+        
         res.end(JSON.stringify({
             content: 'OK',
             dirList: dirList
