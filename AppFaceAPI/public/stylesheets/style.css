@@ -17,12 +17,16 @@ canvas {
   position: absolute;
 }
 
-#img-div {position: absolute;
+#img-div {
+  position: relative;
   top: 600px;
+}
+
+#captured-photo {
+  position: absolute;
 }
 
 #to-draw-canvas {
   width: 640px;
   height: 480px;
 }
-

@@ -2,8 +2,13 @@ const video = document.getElementById('video')
 const photo = document.getElementById('captured-photo')
 const toDrawCanvas = document.getElementById('to-draw-canvas')
 const canvasDiv = document.getElementById('canvas-div')
+const imgDiv = document.getElementById('img-div')
+const modal = document.getElementById('info-modal')
+const btnOK = document.getElementById('btn-ok')
+const btnCancel = document.getElementById('btn-cancel')
 
 Promise.all([
+    faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
     faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
     faceapi.nets.faceRecognitionNet.loadFromUri('/models')
 ]).then(startVideo)
@@ -60,46 +65,61 @@ function capturePhoto() {
         "img": data
     }
     sendPhoto(content)
-    function sendPhoto(content) {
-        $.ajax({
-            method: 'POST',
-            url: 'recognition',
-            data: JSON.stringify(content),
-            contentType: 'application/json; charset=utf-8',
-            dataType: 'json',
-            success: function (res) {
-                console.log(res)
-            }
-        })
-    }
     // faceRecognition()
 }
 
-// function faceRecognition() {
-//     const labeledFaceDescriptors = detectAllLabeledFaces();
-//     const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.8);
-//     const bestMatch = faceMatcher.findBestMatch(result.descriptor);
-//     const box = resizedDetections.detection.box;
-//     const drawBox = new faceapi.draw.DrawBox(box, { label: bestMatch.label });
-//     drawBox.draw(canvas);
-// }
+function sendPhoto(content) {
+    $.ajax({
+        method: 'POST',
+        url: 'recognition',
+        data: JSON.stringify(content),
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        success: function (res) {
+            faceRecognize(res.dirList)
+        }
+    })
+}
 
-// async function detectAllLabeledFaces() {
-//     const labels = ["Tin"];
-//     return Promise.all(
-//         labels.map(async label => {
-//             const descriptions = [];
-//             for (let i = 1; i <= 2; i++) {
-//                 const img = await faceapi.fetchImage(
-//                     `http://localhost:8000/images/${label}/${i}.jpg`
-//                 );
-//                 const detection = await faceapi
-//                     .detectSingleFace(img)
-//                     .withFaceLandmarks()
-//                     .withFaceDescriptor();
-//                 descriptions.push(detection.descriptor);
-//             }
-//             return new faceapi.LabeledFaceDescriptors(label, descriptions);
-//         })
-//     );
-// }
+async function faceRecognize(dirList) {
+    const labeledFaceDescriptors = await loadLabeledImages(dirList)
+    const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.6)
+    var canvas = faceapi.createCanvasFromMedia(photo)
+    imgDiv.append(canvas)
+    const displaySize = { width: photo.width, height: photo.height }
+    faceapi.matchDimensions(canvas, displaySize)
+    const detections = await faceapi.detectAllFaces(photo, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors()
+    const resizedDetections = faceapi.resizeResults(detections, displaySize)
+    const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor))
+    const box = resizedDetections[0].detection.box
+    const drawBox = new faceapi.draw.DrawBox(box, { label: results[0].toString() })
+    drawBox.draw(canvas)
+    $('#info-text').text('MSSV của bạn là ' + results[0].toString().split('(')[0] + 'đúng không?')
+    $('#info-modal').modal('show')
+}
+
+function loadLabeledImages(dirList) {
+    const labels = dirList
+    return Promise.all(
+        labels.map(async label => {
+            const descriptions = []
+            for (let i = 1; i <= 2; i++) {
+                const img = await faceapi.fetchImage(`http://localhost:8002/images/${label}/${i}.jpg`)
+                const detections = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor()
+                descriptions.push(detections.descriptor)
+            }
+            return new faceapi.LabeledFaceDescriptors(label, descriptions)
+        })
+    )
+}
+
+btnOK.addEventListener('click', function () {
+    // photo.setAttribute('src', '')
+    // toDrawCanvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
+    location.reload();
+})
+
+btnCancel.addEventListener('click', function () {
+    // video.play()
+    location.reload();
+})

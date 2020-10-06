@@ -25,14 +25,19 @@ module.exports = function (app) {
 
     app.post('/recognition', async function (req, res) {
         let base64String = req.body.img
-        var img
+        // var img
         // var img = $(`<img src="${base64String}">`)
-        await faceapi.nets.tinyFaceDetector.loadFromDisk('./public/models/tiny_face_detector_model-weights_manifest.json')
-        await faceapi.nets.faceRecognitionNet.loadFromDisk('./public/models/face_recognition_model-weights_manifest.json')
-        recognizeImg(img)
+        // await faceapi.nets.tinyFaceDetector.loadFromDisk('./public/models/tiny_face_detector_model-weights_manifest.json')
+        // await faceapi.nets.faceRecognitionNet.loadFromDisk('./public/models/face_recognition_model-weights_manifest.json')
+        // recognizeImg(img)
         // await recognizeImg(img)
+        var dirList = []; //this is going to contain paths
+        fs.readdirSync('public/images/').forEach(folder => {
+            dirList.push(folder)
+        })
         res.end(JSON.stringify({
-            content: 'OK'
+            content: 'OK',
+            dirList: dirList
         }))
     })
 }
@@ -69,12 +74,12 @@ function loadLabeledImages() {
                 // var img = await $(`<img src="data:image/jpg;base64,${b64String}">`)
                 // var img = fetchImage(`http://localhost:9000/images/${label}/${i}.png`);
                 const detection = await faceapi
-                    .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.3 }))
+                    .detectSingleFace(img)
                     .withFaceLandmarks()
                     .withFaceDescriptor();
                 //----------------------------------------------------//
 
-                
+
                 console.log(img instanceof HTMLImageElement)
                 descriptions.push(detection.descriptor)
             }
