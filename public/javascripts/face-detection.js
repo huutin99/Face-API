@@ -6,7 +6,6 @@ const modal = document.getElementById('IDModal')
 const sID = document.getElementById('SID')
 const btnOK = document.getElementById('btn-ok')
 const btnCancel = document.getElementById('btn-cancel')
-const takePhoto = document.getElementById('takePhoto')
 
 Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
@@ -92,10 +91,6 @@ sID.addEventListener('keyup', function (event) {
     if (event.keyCode === 13) {
         btnOK.click()
     }
-})
-
-takePhoto.addEventListener('click', async function () {
-    capturePhoto()
 })
 
 btnOK.addEventListener('click', async function () {

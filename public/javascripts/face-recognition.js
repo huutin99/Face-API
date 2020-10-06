@@ -6,7 +6,6 @@ const imgDiv = document.getElementById('img-div')
 const modal = document.getElementById('info-modal')
 const btnOK = document.getElementById('btn-ok')
 const btnCancel = document.getElementById('btn-cancel')
-const takePhoto = document.getElementById('takePhoto')
 
 Promise.all([
     faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
@@ -124,8 +123,4 @@ btnOK.addEventListener('click', function () {
 btnCancel.addEventListener('click', function () {
     // video.play()
     location.reload();
-})
-
-takePhoto.addEventListener('click', async function () {
-    capturePhoto()
 })

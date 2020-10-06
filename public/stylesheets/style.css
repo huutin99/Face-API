@@ -2,7 +2,6 @@ body {
   padding: 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
   display: block;
-  
 }
 
 a {
@@ -30,8 +29,4 @@ canvas {
 #to-draw-canvas {
   width: 640px;
   height: 480px;
-}
-
-#info-modal, #IDModal{
-    top: 100px;
 }
