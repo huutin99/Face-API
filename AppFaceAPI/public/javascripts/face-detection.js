@@ -46,9 +46,9 @@ async function detectFace(canvas, displaySize) {
     }
     else frameCounter = 0
     if (frameCounter > 5) {
+        frameCounter = 0
         capturePhoto()
         clearInterval(interval)
-        frameCounter = 0
         canvasDiv.querySelectorAll('*').forEach(x => x.remove())
     }
 }

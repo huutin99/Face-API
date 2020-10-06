@@ -10,7 +10,8 @@ const btnCancel = document.getElementById('btn-cancel')
 Promise.all([
     faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
     faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
-    faceapi.nets.faceRecognitionNet.loadFromUri('/models')
+    faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
+    faceapi.nets.ssdMobilenetv1.loadFromUri('/models')
 ]).then(startVideo)
 
 function startVideo() {
@@ -88,7 +89,7 @@ async function faceRecognize(dirList) {
     imgDiv.append(canvas)
     const displaySize = { width: photo.width, height: photo.height }
     faceapi.matchDimensions(canvas, displaySize)
-    const detections = await faceapi.detectAllFaces(photo, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors()
+    const detections = await faceapi.detectAllFaces(photo).withFaceLandmarks().withFaceDescriptors()
     const resizedDetections = faceapi.resizeResults(detections, displaySize)
     const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor))
     const box = resizedDetections[0].detection.box
@@ -104,8 +105,8 @@ function loadLabeledImages(dirList) {
         labels.map(async label => {
             const descriptions = []
             for (let i = 1; i <= 2; i++) {
-                const img = await faceapi.fetchImage(`http://localhost:8002/images/${label}/${i}.jpg`)
-                const detections = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor()
+                const img = await faceapi.fetchImage(`http://localhost:9000/images/${label}/${i}.jpg`)
+                const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor()
                 descriptions.push(detections.descriptor)
             }
             return new faceapi.LabeledFaceDescriptors(label, descriptions)
