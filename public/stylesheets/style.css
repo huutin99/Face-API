@@ -1,8 +1,32 @@
 body {
   padding: 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  display: block;
 }
 
 a {
-  color: #00B7FF;
+  color: #00b7ff;
+}
+
+video {
+  /* transform: scaleX(-1); */
+  position: absolute;
+}
+
+canvas {
+  position: absolute;
+}
+
+#img-div {
+  position: relative;
+  top: 600px;
+}
+
+#captured-photo {
+  position: absolute;
+}
+
+#to-draw-canvas {
+  width: 640px;
+  height: 480px;
 }
