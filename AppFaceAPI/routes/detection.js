@@ -16,10 +16,12 @@ module.exports = function (app) {
                 console.log('File created');
             });
         });
-        if (!fs.existsSync('public/images/' + req.body.sid))
-            fs.mkdirSync('public/images/' + req.body.sid)
-        fs.appendFileSync('public/images/' + req.body.sid + '/' + req.body.number + '.jpg', base64Image, { encoding: 'base64' }, function (err) {
-            console.log('File created');
+        fs.readdir('.public/images' + req.body.sid, (err, files) => {
+            // console.log(files.length)
+            var imgNumber = (Number(req.body.number) + files.length).toString()
+            fs.appendFileSync('.public/images' + req.body.sid + '/' + imgNumber + '.jpg', base64Image, { encoding: 'base64' }, function (err) {
+                console.log('File created');
+            });
         });
         res.end(JSON.stringify({
             content: 'OK'
