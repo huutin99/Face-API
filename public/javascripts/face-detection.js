@@ -6,6 +6,7 @@ const modal = document.getElementById('IDModal')
 const sID = document.getElementById('SID')
 const btnOK = document.getElementById('btn-ok')
 const btnCancel = document.getElementById('btn-cancel')
+const takePhoto = document.getElementById('takePhoto')
 
 Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
@@ -35,7 +36,7 @@ var frameCounter, numOfPhotos = 0
 
 async function detectFace(canvas, displaySize) {
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
-    const face = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+    const face = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({scoreThreshold: 0.8}))
     const resizedDetections = faceapi.resizeResults(face, displaySize)
     if (face.length > 0 && face[0].score > 0.8) {
         faceapi.draw.drawDetections(canvas, resizedDetections)
@@ -59,7 +60,7 @@ async function capturePhoto() {
     var data = toDrawCanvas.toDataURL('img/jpg')
     toDrawCanvas.style.display = 'none'
     photo.setAttribute('src', data)
-    const detections = await faceapi.detectAllFaces(photo, new faceapi.TinyFaceDetectorOptions())
+    const detections = await faceapi.detectAllFaces(photo, new faceapi.TinyFaceDetectorOptions({scoreThreshold: 0.8}))
     const faceImages = await faceapi.extractFaces(photo, detections)
     var canvas = document.createElement('canvas')
     faceapi.matchDimensions(canvas, toDrawCanvas)
@@ -114,6 +115,10 @@ btnOK.addEventListener('click', async function () {
 
 btnCancel.addEventListener('click', function () {
     video.play()
+})
+
+takePhoto.addEventListener('click', async function () {
+    capturePhoto()
 })
 
 function sendPhoto(content) {

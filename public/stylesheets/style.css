@@ -31,6 +31,6 @@ canvas {
   height: 480px;
 }
 
-#IDModal {
+#info-modal, #IDModal {
   top: 150px;
 }
