@@ -20,6 +20,6 @@ app.use('/', indexRouter);
 faceDetection(app)
 faceRecognition(app)
 
-app.listen(9000)
+app.listen(10000)
 
 module.exports = app;

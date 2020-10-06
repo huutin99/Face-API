@@ -14,12 +14,29 @@ Promise.all([
 ]).then(startVideo)
 
 function startVideo() {
-    navigator.getUserMedia(
-        { video: {} },
-        stream => video.srcObject = stream,
-        err => console.error(err)
-    )
+    navigator.getUserMedia = ( navigator.getUserMedia ||
+        navigator.webkitGetUserMedia ||
+        navigator.mozGetUserMedia ||
+        navigator.msGetUserMedia);
+    navigator.getUserMedia({ video: true},function (stream) {
+        video.srcObject = stream
+    }, function (err) {});
+        /* handle the error */
+    // })
+    //     .then(function (stream) {
+    //         video.srcObject = stream
+    //     })
+    //     .catch(function (err) {
+    //         /* handle the error */
+    //     });
+    // getMedia({ video: true })
+    // navigator.mediaDevices.getUserMedia(
+    //     { video: {} },
+    //     stream => video.srcObject = stream,
+    //     err => console.error(err)
+    // )
 }
+
 
 var interval
 
@@ -36,9 +53,9 @@ var frameCounter, numOfPhotos = 0
 
 async function detectFace(canvas, displaySize) {
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
-    const face = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({scoreThreshold: 0.8}))
+    const face = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({scoreThreshold: 0.7}))
     const resizedDetections = faceapi.resizeResults(face, displaySize)
-    if (face.length > 0 && face[0].score > 0.8) {
+    if (face.length > 0 && face[0].score > 0.6) {
         faceapi.draw.drawDetections(canvas, resizedDetections)
         frameCounter++
     }
@@ -60,7 +77,7 @@ async function capturePhoto() {
     var data = toDrawCanvas.toDataURL('img/jpg')
     toDrawCanvas.style.display = 'none'
     photo.setAttribute('src', data)
-    const detections = await faceapi.detectAllFaces(photo, new faceapi.TinyFaceDetectorOptions({scoreThreshold: 0.8}))
+    const detections = await faceapi.detectAllFaces(photo, new faceapi.TinyFaceDetectorOptions({scoreThreshold: 0.6}))
     const faceImages = await faceapi.extractFaces(photo, detections)
     var canvas = document.createElement('canvas')
     faceapi.matchDimensions(canvas, toDrawCanvas)

@@ -7,7 +7,7 @@ const modal = document.getElementById('info-modal')
 const btnOK = document.getElementById('btn-ok')
 const btnCancel = document.getElementById('btn-cancel')
 const takePhoto = document.getElementById('takePhoto')
-
+const host = `http://localhost:10000`
 Promise.all([
     faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
     faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
@@ -108,7 +108,7 @@ function loadLabeledImages(dirList) {
             try {
                 const descriptions = []
                 for (let i = 1; i <= label.split(';')[1]; i++) {
-                    const img = await faceapi.fetchImage(`http://localhost:9000/images/${label.split(';')[0]}/${i}.jpg`)
+                    const img = await faceapi.fetchImage(host + `/images/${label.split(';')[0]}/${i}.jpg`)
                     const detections = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor()
                     if (detections)
                         descriptions.push(detections.descriptor)
