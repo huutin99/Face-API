@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs-node": "^2.4.0",
+    "@tensorflow/tfjs-node-gpu": "^2.4.0",
     "canvas": "^2.6.1",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",

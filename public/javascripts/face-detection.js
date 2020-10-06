@@ -35,7 +35,7 @@ var frameCounter, numOfPhotos = 0
 
 async function detectFace(canvas, displaySize) {
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
-    const face = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputsize: 128 }))
+    const face = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
     const resizedDetections = faceapi.resizeResults(face, displaySize)
     if (face.length > 0 && face[0].score > 0.8) {
         faceapi.draw.drawDetections(canvas, resizedDetections)
@@ -45,7 +45,7 @@ async function detectFace(canvas, displaySize) {
         frameCounter--
     }
     else frameCounter = 0
-    if (frameCounter > 5) {
+    if (frameCounter > 20) {
         frameCounter = 0
         capturePhoto()
         clearInterval(interval)
@@ -59,7 +59,7 @@ async function capturePhoto() {
     var data = toDrawCanvas.toDataURL('img/jpg')
     toDrawCanvas.style.display = 'none'
     photo.setAttribute('src', data)
-    const detections = await faceapi.detectAllFaces(photo, new faceapi.TinyFaceDetectorOptions({ inputsize: 128 }))
+    const detections = await faceapi.detectAllFaces(photo, new faceapi.TinyFaceDetectorOptions())
     const faceImages = await faceapi.extractFaces(photo, detections)
     var canvas = document.createElement('canvas')
     faceapi.matchDimensions(canvas, toDrawCanvas)
@@ -72,7 +72,8 @@ async function capturePhoto() {
         var content = {
             "sid": sID.value,
             "number": 1,
-            "img": newData
+            "img": data,
+            "faceimg": newData
         }
         sendPhoto(content)
         numOfPhotos = 0
@@ -100,7 +101,8 @@ btnOK.addEventListener('click', async function () {
         var content = {
             "sid": sID.value,
             "number": 1,
-            "img": document.querySelector('#facesContainer canvas').toDataURL('img/jpg')
+            "img": photo.getAttribute('src'),
+            "faceimg": document.querySelector('#facesContainer canvas').toDataURL('img/jpg')
         }
         sendPhoto(content)
         await $('#IDModal').modal('hide')

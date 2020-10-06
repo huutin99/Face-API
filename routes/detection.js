@@ -16,6 +16,19 @@ module.exports = function (app) {
                 console.log('File created');
             });
         });
+        ///////////////////////////////////////////
+        if (!fs.existsSync('cutimg/' + req.body.sid))
+            fs.mkdirSync('cutimg/' + req.body.sid)
+        let base64FaceString = req.body.faceimg
+        let base64FaceImage = base64FaceString.split(';base64,').pop();
+        fs.readdir('./cutimg/' + req.body.sid, (err, files) => {
+            // console.log(files.length)
+            var imgNumber = (Number(req.body.number) + files.length).toString()
+            fs.appendFileSync('./cutimg/' + req.body.sid + '/' + imgNumber + '.jpg', base64FaceImage, { encoding: 'base64' }, function (err) {
+                console.log('File created');
+            });
+        });
+        ///////////////////////////////////////////
         if (!fs.existsSync('./public/images/' + req.body.sid))
             fs.mkdirSync('./public/images/' + req.body.sid)
         fs.readdir('./public/images/' + req.body.sid, (err, files) => {

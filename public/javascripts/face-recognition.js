@@ -77,6 +77,7 @@ function sendPhoto(content) {
         contentType: 'application/json; charset=utf-8',
         dataType: 'json',
         success: function (res) {
+            console.log(res.dirList)
             faceRecognize(res.dirList)
         }
     })
@@ -89,7 +90,7 @@ async function faceRecognize(dirList) {
     imgDiv.append(canvas)
     const displaySize = { width: photo.width, height: photo.height }
     faceapi.matchDimensions(canvas, displaySize)
-    const detections = await faceapi.detectAllFaces(photo, new faceapi.TinyFaceDetectorOptions({ inputsize: 128 })).withFaceLandmarks().withFaceDescriptors()
+    const detections = await faceapi.detectAllFaces(photo, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors()
     const resizedDetections = faceapi.resizeResults(detections, displaySize)
     const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor))
     const box = resizedDetections[0].detection.box
@@ -100,16 +101,22 @@ async function faceRecognize(dirList) {
 }
 
 function loadLabeledImages(dirList) {
-    const labels = dirList
+    var labels = dirList
     return Promise.all(
         labels.map(async label => {
-            const descriptions = []
-            for (let i = 1; i <= 2; i++) {
-                const img = await faceapi.fetchImage(`http://localhost:9000/images/${label}/${i}.jpg`)
-                const detections = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions({ inputsize: 128 })).withFaceLandmarks().withFaceDescriptor()
-                descriptions.push(detections.descriptor)
+            try {
+                const descriptions = []
+                for (let i = 1; i <= label.split(';')[1]; i++) {
+                    const img = await faceapi.fetchImage(`http://localhost:9000/images/${label.split(';')[0]}/${i}.jpg`)
+                    const detections = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor()
+                    if (detections)
+                        descriptions.push(detections.descriptor)
+                }
+                return new faceapi.LabeledFaceDescriptors(label.split(';')[0], descriptions)
             }
-            return new faceapi.LabeledFaceDescriptors(label, descriptions)
+            catch {
+
+            }
         })
     )
 }
