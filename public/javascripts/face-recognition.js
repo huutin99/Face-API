@@ -16,11 +16,13 @@ Promise.all([
 ]).then(startVideo)
 
 function startVideo() {
-    navigator.getUserMedia(
-        { video: {} },
-        stream => video.srcObject = stream,
-        err => console.error(err)
-    )
+    navigator.getUserMedia = ( navigator.getUserMedia ||
+        navigator.webkitGetUserMedia ||
+        navigator.mozGetUserMedia ||
+        navigator.msGetUserMedia);
+    navigator.getUserMedia({ video: true},function (stream) {
+        video.srcObject = stream
+    }, function (err) {});
 }
 
 var interval, frameCounter
@@ -40,7 +42,7 @@ async function detectFace(canvas, displaySize) {
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
     const face = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputsize: 128 }))
     const resizedDetections = faceapi.resizeResults(face, displaySize)
-    if (face.length > 0 && face[0].score > 0.8) {
+    if (face.length > 0 && face[0].score > 0.7) {
         faceapi.draw.drawDetections(canvas, resizedDetections)
         frameCounter++
     }
@@ -48,7 +50,7 @@ async function detectFace(canvas, displaySize) {
         frameCounter--
     }
     else frameCounter = 0
-    if (frameCounter > 20) {
+    if (frameCounter > 10) {
         capturePhoto()
         clearInterval(interval)
         frameCounter = 0
@@ -78,8 +80,14 @@ function sendPhoto(content) {
         contentType: 'application/json; charset=utf-8',
         dataType: 'json',
         success: function (res) {
-            $('#info-text').text('MSSV của bạn là ' + res.result.toString().split('(')[0] + 'đúng không?')
-            $('#info-modal').modal('show')
+            if (res.result.toString() != 'UNKNOWN'){
+                $('#info-text').text('MSSV của bạn là ' + res.result.toString().split('(')[0] + 'đúng không?')
+                $('#info-modal').modal('show')
+            }
+            else{
+                $('#info-text').text('Sorry, không tìm được bạn rồi :<')
+                $('#info-modal').modal('show')
+            }
         }
     })
 }

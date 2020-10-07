@@ -10,7 +10,6 @@ module.exports = function (app) {
         let base64String = req.body.img
         let base64Image = base64String.split(';base64,').pop();
         fs.readdir('./img/' + req.body.sid, (err, files) => {
-            // console.log(files.length)
             var imgNumber = (Number(req.body.number) + files.length).toString()
             fs.appendFileSync('./img/' + req.body.sid + '/' + imgNumber + '.jpg', base64Image, { encoding: 'base64' }, function (err) {
                 console.log('File created');
@@ -22,19 +21,8 @@ module.exports = function (app) {
         let base64FaceString = req.body.faceimg
         let base64FaceImage = base64FaceString.split(';base64,').pop();
         fs.readdir('./cutimg/' + req.body.sid, (err, files) => {
-            // console.log(files.length)
             var imgNumber = (Number(req.body.number) + files.length).toString()
             fs.appendFileSync('./cutimg/' + req.body.sid + '/' + imgNumber + '.jpg', base64FaceImage, { encoding: 'base64' }, function (err) {
-                console.log('File created');
-            });
-        });
-        ///////////////////////////////////////////
-        if (!fs.existsSync('./public/images/' + req.body.sid))
-            fs.mkdirSync('./public/images/' + req.body.sid)
-        fs.readdir('./public/images/' + req.body.sid, (err, files) => {
-            // console.log(files.length)
-            var imgNumber = (Number(req.body.number) + files.length).toString()
-            fs.appendFileSync('./public/images/' + req.body.sid + '/' + imgNumber + '.jpg', base64Image, { encoding: 'base64' }, function (err) {
                 console.log('File created');
             });
         });

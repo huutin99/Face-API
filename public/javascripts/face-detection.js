@@ -21,22 +21,7 @@ function startVideo() {
     navigator.getUserMedia({ video: true},function (stream) {
         video.srcObject = stream
     }, function (err) {});
-        /* handle the error */
-    // })
-    //     .then(function (stream) {
-    //         video.srcObject = stream
-    //     })
-    //     .catch(function (err) {
-    //         /* handle the error */
-    //     });
-    // getMedia({ video: true })
-    // navigator.mediaDevices.getUserMedia(
-    //     { video: {} },
-    //     stream => video.srcObject = stream,
-    //     err => console.error(err)
-    // )
 }
-
 
 var interval
 
@@ -55,7 +40,7 @@ async function detectFace(canvas, displaySize) {
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
     const face = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({scoreThreshold: 0.7}))
     const resizedDetections = faceapi.resizeResults(face, displaySize)
-    if (face.length > 0 && face[0].score > 0.6) {
+    if (face.length > 0 && face[0].score > 0.7) {
         faceapi.draw.drawDetections(canvas, resizedDetections)
         frameCounter++
     }
@@ -63,7 +48,7 @@ async function detectFace(canvas, displaySize) {
         frameCounter--
     }
     else frameCounter = 0
-    if (frameCounter > 20) {
+    if (frameCounter > 10) {
         frameCounter = 0
         capturePhoto()
         clearInterval(interval)

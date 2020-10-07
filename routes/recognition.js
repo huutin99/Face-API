@@ -15,16 +15,22 @@ module.exports = function (app) {
     app.get('/recognition', function (req, res) {
         res.render('face-recognition')
     })
-
-
+    app.post('/recognition', async function (req, res) {
         var base64Data = req.body.img.replace(/^data:image\/png;base64,/, "");
         fs.writeFileSync('queryimg/1.jpg', base64Data, 'base64', function (err) {
             console.log(err);
         });
-        var result = recognizeImg()
-        res.end(JSON.stringify({
-            result: (await result).toString()
-        }))
+        try {
+            var result = recognizeImg()
+            res.end(JSON.stringify({
+                result: (await result).toString()
+            }))
+        }
+        catch {
+            res.end(JSON.stringify({
+                result: 'UNKNOWN'
+            }))
+        }
     })
 }
 
@@ -43,22 +49,29 @@ async function recognizeImg() {
 }
 
 function loadLabeledImages() {
-    var dirList = []; //this is going to contain paths
+    var dirList = []
     fs.readdirSync('img/').forEach(folder => {
+        var length = fs.readdirSync(`img/${folder}/`).length
+        folder += ';' + length
         dirList.push(folder)
     })
     return Promise.all(
         dirList.map(async label => {
             var descriptions = []
-            for (let i = 1; i <= 2; i++) {
-                var img = await canvas.loadImage(`img/${label}/${i}.jpg`)
+            for (let i = 1; i <= label.split(';')[1]; i++) {
+                var img = await canvas.loadImage(`img/${label.split(';')[0]}/${i}.jpg`)
                 const detection = await faceapi
                     .detectSingleFace(img, new TinyFaceDetectorOptions())
                     .withFaceLandmarks()
                     .withFaceDescriptor();
                 descriptions.push(detection.descriptor)
             }
-            return new faceapi.LabeledFaceDescriptors(label, descriptions)
+            try {
+                return new faceapi.LabeledFaceDescriptors(label.split(';')[0], descriptions)
+            }
+            catch {
+                return new faceapi.LabeledFaceDescriptors(label.split(';')[0], new Float32Array)
+            }
         })
     )
 }
