@@ -14,11 +14,13 @@ Promise.all([
 ]).then(startVideo)
 
 function startVideo() {
-    navigator.getUserMedia(
-        { video: {} },
-        stream => video.srcObject = stream,
-        err => console.error(err)
-    )
+    navigator.getUserMedia = ( navigator.getUserMedia ||
+        navigator.webkitGetUserMedia ||
+        navigator.mozGetUserMedia ||
+        navigator.msGetUserMedia);
+    navigator.getUserMedia({ video: true},function (stream) {
+        video.srcObject = stream
+    }, function (err) {});
 }
 
 var interval

@@ -2,21 +2,6 @@ require('@tensorflow/tfjs-node')
 const faceapi = require('face-api.js')
 const fetch = require('node-fetch')
 var fs = require('fs')
-// const { window } = new JSDOM("<!DOCTYPE html>")
-
-// const { JSDOM } = require("jsdom")
-// global.window = new JSDOM('<!DOCTYPE html><img id="for-detect">').window
-// global.document = window.document
-// global.HTMLImageElement = window.HTMLImageElement
-// const $ = require("jquery")(window)
-
-// faceapi.env.monkeyPatch({
-//     fetch: fetch,
-//     Canvas: window.HTMLCanvasElement,
-//     Image: window.HTMLImageElement,
-//     createCanvasElement: () => document.createElement('canvas'),
-//     createImageElement: () => document.createElement('img')
-// })
 
 module.exports = function (app) {
     app.get('/recognition', function (req, res) {
