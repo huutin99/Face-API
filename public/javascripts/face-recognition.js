@@ -78,49 +78,49 @@ function sendPhoto(content) {
         contentType: 'application/json; charset=utf-8',
         dataType: 'json',
         success: function (res) {
-            console.log(res.dirList)
-            faceRecognize(res.dirList)
+            $('#info-text').text('MSSV của bạn là ' + res.result.toString().split('(')[0] + 'đúng không?')
+            $('#info-modal').modal('show')
         }
     })
 }
 
-async function faceRecognize(dirList) {
-    const labeledFaceDescriptors = await loadLabeledImages(dirList)
-    const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.6)
-    var canvas = faceapi.createCanvasFromMedia(photo)
-    imgDiv.append(canvas)
-    const displaySize = { width: photo.width, height: photo.height }
-    faceapi.matchDimensions(canvas, displaySize)
-    const detections = await faceapi.detectAllFaces(photo, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors()
-    const resizedDetections = faceapi.resizeResults(detections, displaySize)
-    const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor))
-    const box = resizedDetections[0].detection.box
-    const drawBox = new faceapi.draw.DrawBox(box, { label: results[0].toString() })
-    drawBox.draw(canvas)
-    $('#info-text').text('MSSV của bạn là ' + results[0].toString().split('(')[0] + 'đúng không?')
-    $('#info-modal').modal('show')
-}
+// async function faceRecognize(dirList) {
+//     const labeledFaceDescriptors = await loadLabeledImages(dirList)
+//     const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.6)
+//     var canvas = faceapi.createCanvasFromMedia(photo)
+//     imgDiv.append(canvas)
+//     const displaySize = { width: photo.width, height: photo.height }
+//     faceapi.matchDimensions(canvas, displaySize)
+//     const detections = await faceapi.detectAllFaces(photo, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors()
+//     const resizedDetections = faceapi.resizeResults(detections, displaySize)
+//     const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor))
+//     const box = resizedDetections[0].detection.box
+//     const drawBox = new faceapi.draw.DrawBox(box, { label: results[0].toString() })
+//     drawBox.draw(canvas)
+//     $('#info-text').text('MSSV của bạn là ' + results[0].toString().split('(')[0] + 'đúng không?')
+//     $('#info-modal').modal('show')
+// }
 
-function loadLabeledImages(dirList) {
-    var labels = dirList
-    return Promise.all(
-        labels.map(async label => {
-            try {
-                const descriptions = []
-                for (let i = 1; i <= label.split(';')[1]; i++) {
-                    const img = await faceapi.fetchImage(host + `/images/${label.split(';')[0]}/${i}.jpg`)
-                    const detections = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor()
-                    if (detections)
-                        descriptions.push(detections.descriptor)
-                }
-                return new faceapi.LabeledFaceDescriptors(label.split(';')[0], descriptions)
-            }
-            catch {
+// function loadLabeledImages(dirList) {
+//     var labels = dirList
+//     return Promise.all(
+//         labels.map(async label => {
+//             try {
+//                 const descriptions = []
+//                 for (let i = 1; i <= label.split(';')[1]; i++) {
+//                     const img = await faceapi.fetchImage(host + `/images/${label.split(';')[0]}/${i}.jpg`)
+//                     const detections = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor()
+//                     if (detections)
+//                         descriptions.push(detections.descriptor)
+//                 }
+//                 return new faceapi.LabeledFaceDescriptors(label.split(';')[0], descriptions)
+//             }
+//             catch {
 
-            }
-        })
-    )
-}
+//             }
+//         })
+//     )
+// }
 
 btnOK.addEventListener('click', function () {
     // photo.setAttribute('src', '')

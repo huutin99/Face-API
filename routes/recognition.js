@@ -2,6 +2,15 @@ require('@tensorflow/tfjs-node')
 const faceapi = require('face-api.js')
 const fetch = require('node-fetch')
 var fs = require('fs')
+const canvas = require('canvas')
+const { TinyFaceDetectorOptions } = require('face-api.js')
+const { Canvas, Image, ImageData } = canvas
+
+faceapi.env.monkeyPatch({
+    Canvas,
+    Image,
+    ImageData
+})
 
 module.exports = function (app) {
     app.get('/recognition', function (req, res) {
@@ -15,24 +24,34 @@ module.exports = function (app) {
             folder += ';' + length
             dirList.push(folder)
         })
-        
+
+        var base64Data = req.body.img.replace(/^data:image\/png;base64,/, "");
+
+        fs.writeFileSync('queryimg/1.jpg', base64Data, 'base64', function (err) {
+            console.log(err);
+        });
+
+        var result = recognizeImg()
+
         res.end(JSON.stringify({
-            content: 'OK',
-            dirList: dirList
+            result: (await result).toString()
         }))
     })
 }
 
-async function recognizeImg(img) {
+async function recognizeImg() {
+    await faceapi.nets.tinyFaceDetector.loadFromDisk('./public/models')
+    await faceapi.nets.faceLandmark68Net.loadFromDisk('./public/models')
+    await faceapi.nets.faceRecognitionNet.loadFromDisk('./public/models')
+
     const labeledFaceDescriptors = await loadLabeledImages()
-    const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.6)
-    const detections = await faceapi.detectAllFaces(img).withFaceLandmarks().withFaceDescriptors()
-    const displaySize = { width: img.width, height: img.height }
+    const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors)
+    const queryImg = await canvas.loadImage('./queryimg/1.jpg')
+    const detections = await faceapi.detectAllFaces(queryImg, new TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors()
+    const displaySize = { width: queryImg.width, height: queryImg.height }
     const resizedDetections = faceapi.resizeResults(detections, displaySize)
     const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor))
-    results.forEach(result => {
-        console.log(result.toString())
-    })
+    return results[0]
 }
 
 function loadLabeledImages() {
@@ -44,24 +63,11 @@ function loadLabeledImages() {
         dirList.map(async label => {
             var descriptions = []
             for (let i = 1; i <= 2; i++) {
-                var bitmap = fs.readFileSync(`img/${label}/${i}.jpg`)
-                var b64String = Buffer.from(bitmap).toString('base64')
-                // var img = document.getElementById('for-detect')
-                var img = document.createElement('img')
-                img.setAttribute('src', `data:image/jpg;base64,` + b64String)
-
-
-                //-------------------Loi cho nay ne-------------------//
-                // var img = await $(`<img src="data:image/jpg;base64,${b64String}">`)
-                // var img = fetchImage(`http://localhost:9000/images/${label}/${i}.png`);
+                var img = await canvas.loadImage(`img/${label}/${i}.jpg`)
                 const detection = await faceapi
-                    .detectSingleFace(img)
+                    .detectSingleFace(img, new TinyFaceDetectorOptions())
                     .withFaceLandmarks()
                     .withFaceDescriptor();
-                //----------------------------------------------------//
-
-
-                console.log(img instanceof HTMLImageElement)
                 descriptions.push(detection.descriptor)
             }
             return new faceapi.LabeledFaceDescriptors(label, descriptions)
