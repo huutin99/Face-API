@@ -5,7 +5,6 @@ var bodyParser = require("body-parser");
 var indexRouter = require('./routes/index');
 var faceDetection = require('./routes/detection')
 var faceRecognition = require('./routes/recognition')
-
 var app = express();
 
 // view engine setup
@@ -21,6 +20,6 @@ app.use('/', indexRouter);
 faceDetection(app)
 faceRecognition(app)
 
-app.listen(9000)
+app.listen(10000)
 
 module.exports = app;
