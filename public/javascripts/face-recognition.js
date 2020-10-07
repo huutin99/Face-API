@@ -1,4 +1,5 @@
 const video = document.getElementById('video')
+const videoDiv = document.getElementById('video-div')
 const photo = document.getElementById('captured-photo')
 const toDrawCanvas = document.getElementById('to-draw-canvas')
 const canvasDiv = document.getElementById('canvas-div')
@@ -8,6 +9,7 @@ const btnOK = document.getElementById('btn-ok')
 const btnCancel = document.getElementById('btn-cancel')
 const takePhoto = document.getElementById('takePhoto')
 const host = `http://localhost:10000`
+
 Promise.all([
     faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
     faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
@@ -29,7 +31,7 @@ var interval, frameCounter
 
 video.addEventListener('play', () => {
     var canvas = faceapi.createCanvasFromMedia(video)
-    canvasDiv.appendChild(canvas)
+    videoDiv.appendChild(canvas)
     const displaySize = { width: video.width, height: video.height }
     faceapi.matchDimensions(canvas, displaySize)
     faceapi.matchDimensions(toDrawCanvas, video)
@@ -54,7 +56,7 @@ async function detectFace(canvas, displaySize) {
         capturePhoto()
         clearInterval(interval)
         frameCounter = 0
-        canvasDiv.querySelectorAll('*').forEach(x => x.remove())
+        videoDiv.querySelectorAll('canvas').forEach(x => x.remove())
     }
 }
 
@@ -64,7 +66,7 @@ function capturePhoto() {
     var data = toDrawCanvas.toDataURL('img/jpg')
     toDrawCanvas.style.display = 'none'
     photo.setAttribute('src', data)
-    console.log(String(photo))
+    // console.log(String(photo))
     var content = {
         "img": data
     }

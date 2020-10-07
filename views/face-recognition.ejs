@@ -16,11 +16,13 @@
 </head>
 
 <body>
-    <div style="margin-bottom:2em">
-        <button class="btn btn-primary" id="takePhoto">Take photo</button>
+    <div style="width: 250px; padding-bottom: 40px; margin: auto">
+        <button class="btn btn-primary" id="takePhoto" style="margin-right: 40px;">Take photo</button>
         <a class="btn btn-warning" href="/detection">Detection</a>
     </div>
-    <video width="640px" height="480px" autoplay muted id="video"></video>
+    <div id="video-div">
+        <video width="640" height="480" autoplay muted id="video"></video>
+    </div>
     <div id="canvas-div"></div>
     <div id="img-div">
         <canvas id="to-draw-canvas"></canvas>
