@@ -3,10 +3,12 @@ const videoDiv = document.getElementById('video-div')
 const photo = document.getElementById('captured-photo')
 const toDrawCanvas = document.getElementById('to-draw-canvas')
 const modal = document.getElementById('IDModal')
+const retakemodal = document.getElementById('retake-modal')
 const sID = document.getElementById('SID')
 const btnOK = document.getElementById('btn-ok')
 const btnCancel = document.getElementById('btn-cancel')
 const takePhoto = document.getElementById('takePhoto')
+const btnRetake = document.getElementById('btn-retake')
 
 Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
@@ -14,13 +16,15 @@ Promise.all([
 ]).then(startVideo)
 
 function startVideo() {
-    navigator.getUserMedia = ( navigator.getUserMedia ||
+    modal.style.display = 'none'
+    retakemodal.style.display = 'none'
+    navigator.getUserMedia = (navigator.getUserMedia ||
         navigator.webkitGetUserMedia ||
         navigator.mozGetUserMedia ||
         navigator.msGetUserMedia);
-    navigator.getUserMedia({ video: true},function (stream) {
+    navigator.getUserMedia({ video: true }, function (stream) {
         video.srcObject = stream
-    }, function (err) {});
+    }, function (err) { });
 }
 
 var interval
@@ -81,12 +85,12 @@ async function capturePhoto() {
         sendPhoto(content)
         numOfPhotos = 0
         sID.value = ''
-        alert('Okay, chụp xong rồi, thank u <3')
-        video.play()
+        $('#retake-modal p').text('Okay, chụp xong rồi, thank u <3')
+        $('#retake-modal').modal('show')
     }
 }
 
-function displayExtractedFace(face){
+function displayExtractedFace(face) {
     toDrawCanvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
     faceapi.matchDimensions()
 }
@@ -98,7 +102,7 @@ sID.addEventListener('keyup', function (event) {
 })
 
 btnOK.addEventListener('click', async function () {
-    if (!isValid(sID.value)){
+    if (!isValid(sID.value)) {
         alert("MSSV không hợp lệ!")
     } else {
         var content = {
@@ -110,9 +114,14 @@ btnOK.addEventListener('click', async function () {
         sendPhoto(content)
         await $('#IDModal').modal('hide')
         numOfPhotos = 1
-        alert('Cho chụp tấm nữa nha')
-        video.play()
+        $('#retake-modal p').text('Cho chụp tấm nữa nha!')
+        $('#retake-modal').modal('show')
     }
+})
+
+btnRetake.addEventListener('click', async function () {
+    await $('#retake-modal').modal('hide')
+    video.play()
 })
 
 btnCancel.addEventListener('click', function () {
@@ -135,7 +144,7 @@ function sendPhoto(content) {
         }
     })
 }
-function isValid(mssv){
+function isValid(mssv) {
     if (mssv.length != 7) return false;
     else if (!(parseInt(mssv) > 1500000 && parseInt(mssv) < 2100000)) return false
     else return true;
