@@ -17,17 +17,17 @@
 </head>
 
 <body>
-    <div style="width: 260px; padding-bottom: 40px;; margin: auto">
+    <div style="width: 260px; padding-bottom: 20px;; margin: auto">
         <button class="btn btn-primary" id="takePhoto" style="margin-right: 40px;">Take photo</button>
         <a class="btn btn-warning" href="/recognition">Recognition</a>
     </div>
     <div id="video-div">
-        <video width="640px" height="480px" autoplay muted id="video"></video>
+        <video width="800px" height="600px" autoplay muted id="video"></video>
     </div>
-    <div id="img-div">
+    <div id="img-div" style="display: none;">
         <canvas id="to-draw-canvas"></canvas>
         <div id="facesContainer"></div>
-        <img id="captured-photo" alt="This photo is captured from the webcam.">
+        <!-- <img id="captured-photo" alt="This photo is captured from the webcam."> -->
     </div>
     <!-- Modal -->
     <div class="modal fade" id="IDModal" data-backdrop="static focus" data-keyboard="false"
@@ -38,12 +38,13 @@
                     <h3 class="modal-title" id="staticBackdropLabel" style="text-align: center;">MSSV của bạn là gì?
                     </h3>
                 </div>
-                <div class="modal-body">
-                    <input id="SID" type="text" style="height: 40px; width: 468px; font-size: 20;">
+                <div class="modal-body" style="height: 450px;">
+                    <input id="SID" type="text" style="height: 40px; width: 468px; font-size: 20;" autofocus>
+                    <img id="captured-photo" alt="This photo is captured from the webcam." width="468px" style="margin-top: 20px;">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" id="btn-ok">OK</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal" id="btn-cancel">Close</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" id="btn-cancel">Chụp lại</button>
                 </div>
             </div>
         </div>
@@ -54,7 +55,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title" id="staticBackdropLabel">Này, bạn ơi...</h4>
+                    <h4 class="modal-title" id="staticBackdropLabel">Ahhh, bạn ơi...</h4>
                 </div>
                 <div class="modal-body">
                     <p id="info-text" style="text-align: center; font-size: 20; margin-top: 1rem;"></p>

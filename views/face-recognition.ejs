@@ -16,15 +16,15 @@
 </head>
 
 <body>
-    <div style="width: 250px; padding-bottom: 40px; margin: auto">
+    <div style="width: 250px; padding-bottom: 20px; margin: auto">
         <button class="btn btn-primary" id="takePhoto" style="margin-right: 40px;">Take photo</button>
         <a class="btn btn-warning" href="/detection">Detection</a>
     </div>
     <div id="video-div">
-        <video width="640" height="480" autoplay muted id="video"></video>
+        <video width="800" height="600" autoplay muted id="video"></video>
     </div>
     <div id="canvas-div"></div>
-    <div id="img-div">
+    <div id="img-div" style="display: none;">
         <canvas id="to-draw-canvas"></canvas>
         <img id="captured-photo" alt="This photo is captured from the webcam.">
     </div>
@@ -63,17 +63,20 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" data-dismiss="modal" id="btn-cancel"
-                        onclick="eCancel()">OKay :(</button>
+                        onclick="eCancel()">Tìm lại :(</button>
                 </div>
             </div>
         </div>
     </div>
     <script>
+        const video = document.getElementById('video')
         function eOK() {
-            location.reload();
+            video.play()
+            // location.reload();
         }
         function eCancel() {
-            location.reload();
+            video.play()
+            // location.reload();
         }
     </script>
 </body>

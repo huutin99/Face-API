@@ -52,7 +52,7 @@ async function detectFace(canvas, displaySize) {
         frameCounter--
     }
     else frameCounter = 0
-    if (frameCounter > 10) {
+    if (frameCounter > 15) {
         frameCounter = 0
         capturePhoto()
         clearInterval(interval)
