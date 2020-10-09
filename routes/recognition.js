@@ -16,6 +16,7 @@ module.exports = function (app) {
         res.render('face-recognition')
     })
     app.post('/recognition', async function (req, res) {
+    
         var base64Data = req.body.img.replace(/^data:image\/png;base64,/, "");
         fs.writeFileSync('queryimg/1.jpg', base64Data, 'base64', function (err) {
             console.log(err);
